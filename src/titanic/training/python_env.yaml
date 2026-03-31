@@ -1,0 +1,16 @@
+name: mlflow-env
+channels:
+  - defaults
+dependencies:
+  - python=3.13
+  - pip
+  - pip:
+    - setuptools
+    - mlflow
+    - pandas
+    - scikit-learn
+    - numpy
+    - matplotlib
+    - seaborn
+    - ydata-profiling
+    - pyyaml
