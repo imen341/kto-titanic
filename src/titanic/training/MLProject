@@ -1,7 +1,7 @@
 name: kto-titanic
-
+docker_env:
+  image: quay.io/imenbenmansour01/titanic/experiment:latest
 entry_points:
-
   main:
     parameters:
       path: str

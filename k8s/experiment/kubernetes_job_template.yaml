@@ -19,4 +19,6 @@ spec:
             requests:
               cpu: 600m
               memory: 4000Mi
+      imagePullSecrets:
+        - name: imenbenmansour01-titanic-pull-secret
       restartPolicy: Never

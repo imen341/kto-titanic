@@ -1,16 +1,28 @@
 FROM python:3.13-slim
 
-# TODO : à remplir
+ARG MLFLOW_S3_ENDPOINT_URL
+ARG AWS_ACCESS_KEY_ID
+ARG AWS_SECRET_ACCESS_KEY
 
-# TODO : Mettre en place les trois arguments transmis par la CI/CD
+ENV MLFLOW_S3_ENDPOINT_URL=${MLFLOW_S3_ENDPOINT_URL}
+ENV AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+ENV AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
 
-# TODO : Les mettre en variables d'environnement pour que MlFlow focntionne correctement
+ENV TMPDIR=/tmp
+ENV GIT_PYTHON_REFRESH=quiet
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app/src:/app/src/titanic/training
 
-# TODO : Ajouter les variables d'env techniques (pour créer les fichiers dans le répertoire tmp et pour le refresh git)
+WORKDIR /app
 
-# TODO : Bien mettre en place le répertoire de travail
+RUN pip install --no-cache-dir --upgrade pip \
+	&& pip install --no-cache-dir \
+		uv \
+		fire==0.7.1 \
+		mlflow[extras]==3.8.1 \
+		pandas==2.3.3 \
+		scikit-learn==1.8.0 \
+		setuptools==80.9.0 \
+		ydata-profiling==4.18.0
 
-# TODO : Installer uv
-# TODO : Copier les sources utiles
-
-# TODO : Installer les dépendances et python avec uv
+COPY src /app/src
