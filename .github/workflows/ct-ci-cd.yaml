@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+env:
+  API_IMAGE_NAME: quay.io/imenbenmansour01/titanic/api
+
 jobs:
   train:
     runs-on: ubuntu-latest
@@ -12,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python 3.13
         uses: actions/setup-python@v4
         with:
           python-version: "3.13"
@@ -21,20 +24,17 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install uv
-          uv sync --group training --group dev
+          uv sync --group training --group dev --group api
 
-      - name: Run tests
+      - name: Launch unit tests
         run: |
-          uv run pytest tests/ci tests/training
+          uv run pytest tests/ci tests/training tests/api
 
       - name: Login to Quay
         run: |
-          docker login quay.io -u ${{ vars.QUAY_USERNAME }} -p ${{ secrets.QUAY_TOKEN }}
+          echo "${{ secrets.QUAY_TOKEN }}" | docker login quay.io -u "${{ vars.QUAY_USERNAME }}" --password-stdin
 
-      - name: Build image
+      - name: Build and push API image
         run: |
-          docker build -t quay.io/imenbenmansour01/titanic/experiment:latest .
-
-      - name: Push image
-        run: |
-          docker push quay.io/imenbenmansour01/titanic/experiment:latest
+          docker build -f k8s/api/Dockerfile -t ${{ env.API_IMAGE_NAME }}:latest .
+          docker push ${{ env.API_IMAGE_NAME }}:latest
