@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.13
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.13"
@@ -23,6 +23,18 @@ jobs:
           pip install uv
           uv sync --group training --group dev
 
-      - name: Launch unit tests
+      - name: Run tests
         run: |
           uv run pytest tests/ci tests/training
+
+      - name: Login to Quay
+        run: |
+          docker login quay.io -u ${{ vars.QUAY_USERNAME }} -p ${{ secrets.QUAY_TOKEN }}
+
+      - name: Build image
+        run: |
+          docker build -t quay.io/imenbenmansour01/titanic/experiment:latest .
+
+      - name: Push image
+        run: |
+          docker push quay.io/imenbenmansour01/titanic/experiment:latest
