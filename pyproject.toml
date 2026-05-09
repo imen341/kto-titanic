@@ -9,6 +9,7 @@ dependencies = [
     # TODO : Ajouter les dépendances transverses manquantes
     "pandas==2.3.3",
     "scikit-learn==1.8.0",
+    "setuptools>=82.0.1",
 ]
 
 [project.scripts]

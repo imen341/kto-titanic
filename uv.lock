@@ -1832,6 +1832,7 @@ dependencies = [
     { name = "fire" },
     { name = "pandas" },
     { name = "scikit-learn" },
+    { name = "setuptools" },
 ]
 
 [package.dev-dependencies]
@@ -1867,6 +1868,7 @@ requires-dist = [
     { name = "fire", specifier = ">=0.7.1" },
     { name = "pandas", specifier = "==2.3.3" },
     { name = "scikit-learn", specifier = "==1.8.0" },
+    { name = "setuptools", specifier = ">=82.0.1" },
 ]
 
 [package.metadata.requires-dev]
