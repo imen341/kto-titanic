@@ -2,10 +2,10 @@ import logging
 import fire
 import mlflow
 
-from steps.load_data import load_data
-from steps.validate import validate
-from steps.split_train_test import split_train_test
-from steps.train import train
+from titanic.training.steps.load_data import load_data
+from titanic.training.steps.validate import validate
+from titanic.training.steps.split_train_test import split_train_test
+from titanic.training.steps.train import train
 
 
 def workflow(input_data_path: str, n_estimators: int, max_depth: int, random_state: int) -> None:
