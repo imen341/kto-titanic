@@ -68,14 +68,23 @@ jobs:
             -d "client_secret=${{ secrets.OAUTH2_CLIENT_SECRET }}" \
             -d "audience=titanic-api" \
             -d "scope=api:read")
-          ACCESS_TOKEN=$(echo $TOKEN_RESPONSE | jq -r '.access_token')
+
+          echo "$TOKEN_RESPONSE"
+
+          ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.access_token')
+
+          if [ "$ACCESS_TOKEN" = "null" ] || [ -z "$ACCESS_TOKEN" ]; then
+            echo "No access token received"
+            exit 1
+          fi
+
           echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> "$GITHUB_ENV"
           echo "OAuth2 token obtained"
 
       - name: Test api with OAuth2 authentication
         run: |
           sleep 60
-          curl -f -X POST $API_ROUTE_URL/infer \
+          curl -i -f -X POST $API_ROUTE_URL/infer \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $ACCESS_TOKEN" \
             -d '{"pclass": 3, "sex": "male", "sibSp": 0, "parch": 0}'
