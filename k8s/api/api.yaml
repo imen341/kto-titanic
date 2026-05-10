@@ -16,6 +16,8 @@ spec:
         - name: titanic-api
           image: quay.io/imenbenmansour01/titanic/api:latest
           env:
+            - name: JAEGER_ENDPOINT
+              value: "http://jaeger-service:4318/v1/traces"
             - name: OAUTH2_DOMAIN
               value: "PLACEHOLDER_OAUTH2_DOMAIN"
             - name: OAUTH2_JWT_AUDIENCE
