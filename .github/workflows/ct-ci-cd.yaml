@@ -38,3 +38,23 @@ jobs:
         run: |
           docker build -f k8s/api/Dockerfile -t ${{ env.API_IMAGE_NAME }}:latest .
           docker push ${{ env.API_IMAGE_NAME }}:latest
+
+
+      - name: Configure kubectl
+        run: |
+          kubectl config set-cluster openshift-cluster --server=${{ vars.OPENSHIFT_SERVER }}
+          kubectl config set-credentials openshift-user --token=${{ secrets.OPENSHIFT_TOKEN }}
+          kubectl config set-context openshift-context --cluster=openshift-cluster --user=openshift-user --namespace=imenbenmansour01-dev
+          kubectl config use-context openshift-context 
+
+      - name: Configure API manifest with OAuth2 domain
+        run: |
+          sed -i 's|PLACEHOLDER_OAUTH2_DOMAIN|${{ vars.OAUTH2_DOMAIN }}|g' k8s/api/api.yaml
+          echo "OAuth2 domain configured"
+
+   
+      - name: Deploy api to Openshift with OAuth2 protection
+        run: |
+          kubectl apply -f k8s/api/api.yaml
+          API_ROUTE_URL=$(kubectl get route titanic-api -o jsonpath='{.spec.host}')
+          echo "API deployed at: https://$API_ROUTE_URL"
