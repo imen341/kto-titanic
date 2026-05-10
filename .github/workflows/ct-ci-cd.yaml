@@ -6,8 +6,7 @@ on:
       - main
 
 env:
-  API_IMAGE_NAME: quay.io/imenbenmansour01/titanic/api
-  API_ROUTE_NAME: titanic-api
+  API_ROUTE_URL: https://titanic-api-imenbenmansour01-dev.apps.rm1.0a51.p1.openshiftapps.com
 
 jobs:
   train:
@@ -31,44 +30,6 @@ jobs:
         run: |
           uv run pytest tests/ci tests/training tests/api
 
-      - name: Login to Quay
-        run: |
-          echo "${{ secrets.QUAY_TOKEN }}" | docker login quay.io -u "${{ vars.QUAY_USERNAME }}" --password-stdin
-
-      - name: Build and push API image
-        run: |
-          docker build -f k8s/api/Dockerfile -t ${{ env.API_IMAGE_NAME }}:latest .
-          docker push ${{ env.API_IMAGE_NAME }}:latest
-
-      - name: Configure kubectl
-        run: |
-          kubectl config set-cluster openshift-cluster \
-            --server=${{ vars.OPENSHIFT_SERVER }} \
-            --insecure-skip-tls-verify=true
-
-          kubectl config set-credentials openshift-user \
-            --token=${{ secrets.OPENSHIFT_TOKEN }}
-
-          kubectl config set-context openshift-context \
-            --cluster=openshift-cluster \
-            --user=openshift-user \
-            --namespace=imenbenmansour01-dev
-
-          kubectl config use-context openshift-context
-          kubectl config current-context
-
-      - name: Configure API manifest with OAuth2 domain
-        run: |
-          sed -i 's|PLACEHOLDER_OAUTH2_DOMAIN|${{ vars.OAUTH2_DOMAIN }}|g' k8s/api/api.yaml
-          echo "OAuth2 domain configured"
-
-      - name: Deploy api to Openshift with OAuth2 protection
-        run: |
-          kubectl apply --validate=false -f k8s/api/api.yaml
-          API_ROUTE_URL=$(kubectl get route ${{ env.API_ROUTE_NAME }} -o jsonpath='{.spec.host}')
-          echo "API_ROUTE_URL=https://$API_ROUTE_URL" >> "$GITHUB_ENV"
-          echo "API deployed at: https://$API_ROUTE_URL"
-
       - name: Get OAuth2 token for integration test
         run: |
           TOKEN_RESPONSE=$(curl -s -X POST "https://${{ vars.OAUTH2_DOMAIN }}/oauth/token" \
@@ -78,22 +39,12 @@ jobs:
             -d "client_secret=${{ secrets.OAUTH2_CLIENT_SECRET }}" \
             -d "audience=titanic-api" \
             -d "scope=api:read")
-
           echo "$TOKEN_RESPONSE"
-
           ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.access_token')
-
-          if [ "$ACCESS_TOKEN" = "null" ] || [ -z "$ACCESS_TOKEN" ]; then
-            echo "No access token received"
-            exit 1
-          fi
-
           echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> "$GITHUB_ENV"
-          echo "OAuth2 token obtained"
 
       - name: Test api with OAuth2 authentication
         run: |
-          sleep 60
           curl -i -f -X POST $API_ROUTE_URL/infer \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $ACCESS_TOKEN" \
