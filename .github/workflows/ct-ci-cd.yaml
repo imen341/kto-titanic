@@ -58,3 +58,39 @@ jobs:
           kubectl apply -f k8s/api/api.yaml
           API_ROUTE_URL=$(kubectl get route titanic-api -o jsonpath='{.spec.host}')
           echo "API deployed at: https://$API_ROUTE_URL"
+            - name: Get OAuth2 token for integration test
+        run: |
+          TOKEN_RESPONSE=$(curl -s -X POST "https://${{ vars.OAUTH2_DOMAIN }}/oauth/token" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "grant_type=client_credentials" \
+            -d "client_id=${{ secrets.OAUTH2_CLIENT_ID }}" \
+            -d "client_secret=${{ secrets.OAUTH2_CLIENT_SECRET }}" \
+            -d "audience=titanic-api" \
+            -d "scope=api:read")
+
+          ACCESS_TOKEN=$(echo $TOKEN_RESPONSE | jq -r '.access_token')
+
+          echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> "$GITHUB_ENV"
+
+          echo "OAuth2 token obtained"
+
+      - name: Test api with OAuth2 authentication
+        run: |
+          sleep 60
+
+          curl -X POST $API_ROUTE_URL/infer \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            -d '{"pclass": 3, "sex": "male", "sibSp": 0, "parch": 0}'
+
+          echo "Integration test passed"
+      - name: Test api with OAuth2 authentication
+        run: |
+          sleep 60
+
+          curl -X POST $API_ROUTE_URL/infer \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            -d '{"pclass": 3, "sex": "male", "sibSp": 0, "parch": 0}'
+
+          echo "Integration test passed"
