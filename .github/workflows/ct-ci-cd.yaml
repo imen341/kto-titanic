@@ -45,8 +45,9 @@ jobs:
 
       - name: Test api with OAuth2 authentication
         run: |
+          sleep 120
+          curl -i -f -X GET $API_ROUTE_URL/health
           curl -i -f -X POST $API_ROUTE_URL/infer \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $ACCESS_TOKEN" \
-            -d '{"pclass": 3, "sex": "male", "sibSp": 0, "parch": 0}'
-          echo "Integration test passed"
+            -d '{"pclass": 1, "sex": "female", "sibSp": 0, "parch": 0}'          echo "Integration test passed"
